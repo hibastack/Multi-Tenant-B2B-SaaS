@@ -1,0 +1,111 @@
+{
+  "info": {
+    "name": "SaaS Booking API (Week 2)",
+    "description": "Run Create booking first: it saves {{bookingId}} for the other requests.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "bookingId", "value": "" },
+    { "key": "replayKey", "value": "demo-replay-key-0001" }
+  ],
+  "item": [
+    {
+      "name": "List bookings",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/bookings?limit=50&offset=0", "host": ["{{baseUrl}}"], "path": ["api", "bookings"], "query": [{ "key": "limit", "value": "50" }, { "key": "offset", "value": "0" }] }
+      }
+    },
+    {
+      "name": "Create booking",
+      "event": [
+        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+          "const start = new Date(Date.now() + 24 * 60 * 60 * 1000);",
+          "const end = new Date(start.getTime() + 60 * 60 * 1000);",
+          "pm.collectionVariables.set('startsAt', start.toISOString());",
+          "pm.collectionVariables.set('endsAt', end.toISOString());"
+        ] } },
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Created (201)', () => pm.response.to.have.status(201));",
+          "const body = pm.response.json();",
+          "if (body.data) pm.collectionVariables.set('bookingId', body.data.id);"
+        ] } }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"Maryam Ali\",\n  \"customerEmail\": \"maryam@example.com\",\n  \"service\": \"Haircut & Styling\",\n  \"startsAt\": \"{{startsAt}}\",\n  \"endsAt\": \"{{endsAt}}\",\n  \"notes\": \"Created from Postman\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/bookings", "host": ["{{baseUrl}}"], "path": ["api", "bookings"] }
+      }
+    },
+    {
+      "name": "Create booking (replay same key)",
+      "event": [
+        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+          "if (!pm.collectionVariables.get('replayStartsAt')) {",
+          "  const start = new Date(Date.now() + 48 * 60 * 60 * 1000);",
+          "  pm.collectionVariables.set('replayStartsAt', start.toISOString());",
+          "  pm.collectionVariables.set('replayEndsAt', new Date(start.getTime() + 3600000).toISOString());",
+          "}"
+        ] } }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{replayKey}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"Replay Test\",\n  \"customerEmail\": \"replay@example.com\",\n  \"service\": \"Idempotency demo\",\n  \"startsAt\": \"{{replayStartsAt}}\",\n  \"endsAt\": \"{{replayEndsAt}}\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/bookings", "host": ["{{baseUrl}}"], "path": ["api", "bookings"] },
+        "description": "Send twice. Second response has header Idempotent-Replayed: true and no new booking is created."
+      }
+    },
+    {
+      "name": "Create booking (missing key -> 400)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"No Key\",\n  \"customerEmail\": \"nokey@example.com\",\n  \"service\": \"Test\",\n  \"startsAt\": \"2026-12-01T10:00:00.000Z\",\n  \"endsAt\": \"2026-12-01T11:00:00.000Z\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/bookings", "host": ["{{baseUrl}}"], "path": ["api", "bookings"] }
+      }
+    },
+    {
+      "name": "Create booking (invalid body -> 400)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{$guid}}" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"customerName\": \"A\",\n  \"customerEmail\": \"not-an-email\",\n  \"service\": \"\",\n  \"startsAt\": \"2026-12-01T11:00:00.000Z\",\n  \"endsAt\": \"2026-12-01T10:00:00.000Z\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/bookings", "host": ["{{baseUrl}}"], "path": ["api", "bookings"] }
+      }
+    },
+    {
+      "name": "Get booking",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "bookings", "{{bookingId}}"] } }
+    },
+    {
+      "name": "Update booking",
+      "request": {
+        "method": "PATCH",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\",\n  \"notes\": \"Updated from Postman\"\n}" },
+        "url": { "raw": "{{baseUrl}}/api/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "bookings", "{{bookingId}}"] }
+      }
+    },
+    {
+      "name": "Delete booking",
+      "request": { "method": "DELETE", "header": [], "url": { "raw": "{{baseUrl}}/api/bookings/{{bookingId}}", "host": ["{{baseUrl}}"], "path": ["api", "bookings", "{{bookingId}}"] } }
+    },
+    {
+      "name": "Get booking (unknown id -> 404)",
+      "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/bookings/00000000-0000-4000-8000-000000000000", "host": ["{{baseUrl}}"], "path": ["api", "bookings", "00000000-0000-4000-8000-000000000000"] } }
+    }
+  ]
+}
