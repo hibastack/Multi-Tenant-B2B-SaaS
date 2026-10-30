@@ -27,9 +27,15 @@ export default function RootLayout({
             <Link href="/bookings" className="font-semibold text-indigo-600">
               SaaS Booking
             </Link>
-            <nav className="text-sm text-zinc-600 dark:text-zinc-400">
+            <nav className="flex gap-4 text-sm text-zinc-600 dark:text-zinc-400">
               <Link href="/bookings" className="hover:text-indigo-600">
                 Bookings
+              </Link>
+              <Link href="/pricing" className="hover:text-indigo-600">
+                Pricing
+              </Link>
+              <Link href="/billing" className="hover:text-indigo-600">
+                Billing
               </Link>
             </nav>
           </div>

@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { btnDanger, btnSecondary } from "@/components/ui";
+import { btnDanger, btnPrimary, btnSecondary } from "@/components/ui";
 
 type Props = {
   open: boolean;
   title: string;
   message: string;
   confirmLabel: string;
+  tone?: "danger" | "primary";
   busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 };
 
-export function ConfirmDialog({ open, title, message, confirmLabel, busy, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, message, confirmLabel, tone = "danger", busy, onConfirm, onCancel }: Props) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !busy && onCancel();
@@ -39,8 +40,13 @@ export function ConfirmDialog({ open, title, message, confirmLabel, busy, onConf
           <button type="button" className={btnSecondary} onClick={onCancel} disabled={busy}>
             Cancel
           </button>
-          <button type="button" className={btnDanger} onClick={onConfirm} disabled={busy}>
-            {busy ? "Deleting..." : confirmLabel}
+          <button
+            type="button"
+            className={tone === "primary" ? btnPrimary : btnDanger}
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? "Please wait..." : confirmLabel}
           </button>
         </div>
       </div>
